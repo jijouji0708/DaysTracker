@@ -9,7 +9,7 @@ struct ContentView: View {
     
     @State private var newEventTitle: String = ""
     @State private var selectedEventIndex: Int? = nil
-    @State private var selectedRecordIndex: Int? = nil
+    @State private var selectedRecordID: UUID? = nil
     @State private var showRecordEditor: Bool = false
     @State private var draftRecord: EventRecord = EventRecord(date: Date(), note: "")
     @State private var isEditingRecord: Bool = false
@@ -70,26 +70,35 @@ struct ContentView: View {
                             isExpanded: isExpanded(filteredEvents[index]),
                             onToggleExpand: { toggleExpand(for: filteredEvents[index].id) },
                             onAddRecord: {
-                                selectedEventIndex = events.firstIndex(where: { $0.id == filteredEvents[index].id })
-                                draftRecord = EventRecord(date: Date(), note: "")
-                                isEditingRecord = false
-                                showRecordEditor = true
+                                if let actualEventIndex = events.firstIndex(where: { $0.id == filteredEvents[index].id }) {
+                                    selectedEventIndex = actualEventIndex
+                                    draftRecord = EventRecord(date: Date(), note: "")
+                                    isEditingRecord = false
+                                    showRecordEditor = true
+                                }
                             },
-                            onEditRecord: { recordIndex in
-                                let actualEventIndex = events.firstIndex(where: { $0.id == filteredEvents[index].id })!
-                                selectedEventIndex = actualEventIndex
-                                selectedRecordIndex = recordIndex
-                                draftRecord = events[actualEventIndex].records[recordIndex]
-                                isEditingRecord = true
-                                showRecordEditor = true // 編集モードで表示
+                            onEditRecord: { recordID in
+                                if let actualEventIndex = events.firstIndex(where: { $0.id == filteredEvents[index].id }),
+                                   let recordIndex = events[actualEventIndex].records.firstIndex(where: { $0.id == recordID }) {
+                                    selectedEventIndex = actualEventIndex
+                                    selectedRecordID = recordID
+                                    draftRecord = events[actualEventIndex].records[recordIndex]
+                                    isEditingRecord = true
+                                    showRecordEditor = true
+                                }
                             },
-                            sortedRecords: sortedRecords(for: events[events.firstIndex(where: { $0.id == filteredEvents[index].id })!]),
+                            sortedRecords: sortedRecords(for: events[index]),
                             daysFromPrevious: { record in
-                                let actualEventIndex = events.firstIndex(where: { $0.id == filteredEvents[index].id })!
-                                return daysFromPreviousRecord(eventIndex: actualEventIndex, record: record)
+                                if let actualEventIndex = events.firstIndex(where: { $0.id == filteredEvents[index].id }) {
+                                    return daysFromPreviousRecord(eventIndex: actualEventIndex, record: record)
+                                }
+                                return 0
                             },
-                            onDeleteRecord: { recordIndex in
-                                deleteRecord(eventIndex: index, recordIndex: recordIndex)
+                            onDeleteRecord: { recordID in
+                                if let actualEventIndex = events.firstIndex(where: { $0.id == filteredEvents[index].id }),
+                                   let recordIndex = events[actualEventIndex].records.firstIndex(where: { $0.id == recordID }) {
+                                    deleteRecord(eventIndex: actualEventIndex, recordIndex: recordIndex)
+                                }
                             }
                         )
                     }
@@ -113,7 +122,8 @@ struct ContentView: View {
                     record: $draftRecord,
                     isEditing: isEditingRecord,
                     onSave: {
-                        if isEditingRecord, let recordIndex = selectedRecordIndex {
+                        if isEditingRecord, let recordID = selectedRecordID,
+                           let recordIndex = events[eventIndex].records.firstIndex(where: { $0.id == recordID }) {
                             // 編集モード: 記録を更新
                             events[eventIndex].records[recordIndex] = draftRecord
                         } else {
@@ -121,9 +131,11 @@ struct ContentView: View {
                             events[eventIndex].records.append(draftRecord)
                         }
                         showRecordEditor = false
+                        selectedRecordID = nil
                     },
                     onCancel: {
                         showRecordEditor = false
+                        selectedRecordID = nil
                     }
                 )
             }
@@ -144,6 +156,7 @@ struct ContentView: View {
     
     private func searchEvents() {
         // 検索イベントロジックをここに追加
+        // 現在はフィルタリングは自動で行われているため、特別な処理は不要です
     }
     
     private func toggleExpand(for eventID: UUID) {

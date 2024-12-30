@@ -5,12 +5,12 @@ struct EventSectionView: View {
     let isExpanded: Bool
     let onToggleExpand: () -> Void
     let onAddRecord: () -> Void
-    let onEditRecord: (Int) -> Void
+    let onEditRecord: (UUID) -> Void
     let sortedRecords: [EventRecord]
     let daysFromPrevious: (EventRecord) -> Int
     
     // 追加: 記録削除用のクロージャ
-    let onDeleteRecord: (Int) -> Void
+    let onDeleteRecord: (UUID) -> Void
 
     var body: some View {
         Section {
@@ -32,8 +32,7 @@ struct EventSectionView: View {
             }
             if isExpanded {
                 // 記録のリスト表示
-                ForEach(sortedRecords.indices, id: \.self) { rIndex in
-                    let record = sortedRecords[rIndex]
+                ForEach(sortedRecords) { record in
                     VStack(alignment: .leading, spacing: 4) {
                         HStack {
                             Text(formattedDate(record.date)) // 日付をフォーマット
@@ -44,7 +43,7 @@ struct EventSectionView: View {
                                 .foregroundColor(.secondary)
                             Spacer()
                             // 編集ボタン
-                            Button(action: { onEditRecord(rIndex) }) {
+                            Button(action: { onEditRecord(record.id) }) {
                                 Image(systemName: "pencil")
                                     .foregroundColor(.blue)
                                     .padding(.horizontal, 8)
@@ -59,7 +58,7 @@ struct EventSectionView: View {
                     .contextMenu {
                         // 右クリックメニューで削除オプションを追加（macOS向け）
                         Button(role: .destructive) {
-                            onDeleteRecord(rIndex)
+                            onDeleteRecord(record.id)
                         } label: {
                             Label("削除", systemImage: "trash")
                         }
@@ -68,7 +67,8 @@ struct EventSectionView: View {
                 // スワイプで削除できるように .onDelete を適用
                 .onDelete { offsets in
                     for offset in offsets {
-                        onDeleteRecord(offset)
+                        let record = sortedRecords[offset]
+                        onDeleteRecord(record.id)
                     }
                 }
                 
