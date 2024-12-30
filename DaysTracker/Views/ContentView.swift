@@ -87,6 +87,9 @@ struct ContentView: View {
                             daysFromPrevious: { record in
                                 let actualEventIndex = events.firstIndex(where: { $0.id == filteredEvents[index].id })!
                                 return daysFromPreviousRecord(eventIndex: actualEventIndex, record: record)
+                            },
+                            onDeleteRecord: { recordIndex in
+                                deleteRecord(eventIndex: index, recordIndex: recordIndex)
                             }
                         )
                     }
@@ -179,6 +182,10 @@ struct ContentView: View {
     
     private func deleteEvents(at offsets: IndexSet) {
         events.remove(atOffsets: offsets)
+    }
+    
+    private func deleteRecord(eventIndex: Int, recordIndex: Int) {
+        events[eventIndex].records.remove(at: recordIndex)
     }
     
     private func saveEvents() {

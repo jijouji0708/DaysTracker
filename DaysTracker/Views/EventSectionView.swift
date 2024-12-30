@@ -8,6 +8,9 @@ struct EventSectionView: View {
     let onEditRecord: (Int) -> Void
     let sortedRecords: [EventRecord]
     let daysFromPrevious: (EventRecord) -> Int
+    
+    // 追加: 記録削除用のクロージャ
+    let onDeleteRecord: (Int) -> Void
 
     var body: some View {
         Section {
@@ -53,7 +56,22 @@ struct EventSectionView: View {
                                 .foregroundColor(.secondary)
                         }
                     }
+                    .contextMenu {
+                        // 右クリックメニューで削除オプションを追加（macOS向け）
+                        Button(role: .destructive) {
+                            onDeleteRecord(rIndex)
+                        } label: {
+                            Label("削除", systemImage: "trash")
+                        }
+                    }
                 }
+                // スワイプで削除できるように .onDelete を適用
+                .onDelete { offsets in
+                    for offset in offsets {
+                        onDeleteRecord(offset)
+                    }
+                }
+                
                 // 記録の追加ボタン
                 Button(action: onAddRecord) {
                     HStack {

@@ -1,0 +1,17 @@
+// en.lproj/Localizable.strings
+
+"app_title" = "Days Tracker";
+"edit" = "Edit";
+"done" = "Done";
+"search_event" = "Search Event";
+"search" = "Search";
+"new_event_name" = "New Event Name";
+"add" = "Add";
+"days_after" = "Days After";
+"add_record" = "Add Record";
+"memo" = "Memo";
+"date" = "Date";
+"cancel" = "Cancel";
+"save" = "Save";
+"edit_record" = "Edit Record";
+

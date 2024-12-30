@@ -1,10 +1,10 @@
-import SwiftUI
+import Foundation
 
 struct Event: Identifiable, Codable {
     let id: UUID
     var title: String
     var records: [EventRecord]
-    var isExpanded: Bool = false
+    var isExpanded: Bool
     
     init(id: UUID = UUID(), title: String, records: [EventRecord] = [], isExpanded: Bool = false) {
         self.id = id

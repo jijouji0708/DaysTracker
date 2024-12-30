@@ -1,0 +1,16 @@
+// ja.lproj/Localizable.strings
+
+"app_title" = "デイストラッカー";
+"edit" = "編集";
+"done" = "完了";
+"search_event" = "イベントを検索";
+"search" = "検索";
+"new_event_name" = "新しいイベント名";
+"add" = "追加";
+"days_after" = "日後";
+"add_record" = "記録を追加";
+"memo" = "メモ";
+"date" = "日付";
+"cancel" = "キャンセル";
+"save" = "保存";
+"edit_record" = "記録を編集";
