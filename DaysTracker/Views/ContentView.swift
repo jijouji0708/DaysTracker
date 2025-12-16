@@ -14,103 +14,117 @@ struct ContentView: View {
     @State private var draftRecord: EventRecord = EventRecord(date: Date(), note: "")
     @State private var isEditingRecord: Bool = false
     @State private var searchText: String = ""
-    
-    // 編集状態を管理する変数
     @State private var isEditing: Bool = false
-    
+
     var body: some View {
         NavigationView {
-            VStack {
-                // 検索バーと新規イベント追加
-                if isEditing {
-                    VStack(spacing: 10) {
-                        // 検索バー
-                        HStack {
-                            TextField("イベントを検索", text: $searchText)
-                                .textFieldStyle(RoundedBorderTextFieldStyle())
-                                .padding(.horizontal, 8)
-                            
-                            Button(action: searchEvents) {
-                                Text("検索")
-                                    .foregroundColor(.white)
-                                    .padding(.horizontal, 12)
-                                    .padding(.vertical, 8)
-                                    .background(Color.green)
-                                    .cornerRadius(8)
-                            }
-                        }
-                        .padding(.horizontal)
-                        
-                        // 新規イベント追加
-                        HStack {
-                            TextField("新しいイベント名", text: $newEventTitle)
-                                .textFieldStyle(RoundedBorderTextFieldStyle())
-                                .padding(.horizontal, 8)
-                            
-                            Button(action: addNewEvent) {
-                                Text("追加")
-                                    .foregroundColor(.white)
-                                    .padding(.horizontal, 12)
-                                    .padding(.vertical, 8)
-                                    .background(Color.blue)
-                                    .cornerRadius(8)
-                            }
-                            .disabled(newEventTitle.trimmingCharacters(in: .whitespaces).isEmpty)
-                        }
-                        .padding(.horizontal)
-                    }
-                    .padding(.top, 8)
-                }
+            ZStack {
+                // 背景グラデーションを追加
+                LinearGradient(gradient: Gradient(colors: [Color.white, Color(.systemGray6)]),
+                               startPoint: .top,
+                               endPoint: .bottom)
+                    .edgesIgnoringSafeArea(.all)
                 
-                // イベントリスト
-                List {
-                    ForEach(filteredEvents.indices, id: \.self) { index in
-                        EventSectionView(
-                            event: filteredEvents[index],
-                            isExpanded: isExpanded(filteredEvents[index]),
-                            onToggleExpand: { toggleExpand(for: filteredEvents[index].id) },
-                            onAddRecord: {
-                                if let actualEventIndex = events.firstIndex(where: { $0.id == filteredEvents[index].id }) {
-                                    selectedEventIndex = actualEventIndex
-                                    draftRecord = EventRecord(date: Date(), note: "")
-                                    isEditingRecord = false
-                                    showRecordEditor = true
-                                }
-                            },
-                            onEditRecord: { recordID in
-                                if let actualEventIndex = events.firstIndex(where: { $0.id == filteredEvents[index].id }),
-                                   let recordIndex = events[actualEventIndex].records.firstIndex(where: { $0.id == recordID }) {
-                                    selectedEventIndex = actualEventIndex
-                                    selectedRecordID = recordID
-                                    draftRecord = events[actualEventIndex].records[recordIndex]
-                                    isEditingRecord = true
-                                    showRecordEditor = true
-                                }
-                            },
-                            sortedRecords: sortedRecords(for: events[index]),
-                            daysFromPrevious: { record in
-                                if let actualEventIndex = events.firstIndex(where: { $0.id == filteredEvents[index].id }) {
-                                    return daysFromPreviousRecord(eventIndex: actualEventIndex, record: record)
-                                }
-                                return 0
-                            },
-                            onDeleteRecord: { recordID in
-                                if let actualEventIndex = events.firstIndex(where: { $0.id == filteredEvents[index].id }),
-                                   let recordIndex = events[actualEventIndex].records.firstIndex(where: { $0.id == recordID }) {
-                                    deleteRecord(eventIndex: actualEventIndex, recordIndex: recordIndex)
+                VStack {
+                    if isEditing {
+                        VStack(spacing: 10) {
+                            // 検索バー
+                            HStack {
+                                TextField("イベントを検索", text: $searchText)
+                                    .padding(10)
+                                    .background(Color.white)
+                                    .cornerRadius(8)
+                                    .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
+                                    .padding(.horizontal, 8)
+                                
+                                Button(action: searchEvents) {
+                                    Text("検索")
+                                        .foregroundColor(.white)
+                                        .padding(.horizontal, 12)
+                                        .padding(.vertical, 8)
+                                        .background(Color.green)
+                                        .cornerRadius(8)
                                 }
                             }
-                        )
+                            .padding(.horizontal)
+                            
+                            // 新規イベント追加
+                            HStack {
+                                TextField("新しいイベント名", text: $newEventTitle)
+                                    .padding(10)
+                                    .background(Color.white)
+                                    .cornerRadius(8)
+                                    .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
+                                    .padding(.horizontal, 8)
+                                
+                                Button(action: addNewEvent) {
+                                    Text("追加")
+                                        .foregroundColor(.white)
+                                        .padding(.horizontal, 12)
+                                        .padding(.vertical, 8)
+                                        .background(newEventTitle.trimmingCharacters(in: .whitespaces).isEmpty ? Color.gray : Color.blue)
+                                        .cornerRadius(8)
+                                }
+                                .disabled(newEventTitle.trimmingCharacters(in: .whitespaces).isEmpty)
+                            }
+                            .padding(.horizontal)
+                        }
+                        .padding(.top, 8)
                     }
-                    .onDelete { offsets in
-                        deleteEvents(at: offsets)
+                    
+                    // イベントリスト
+                    List {
+                        ForEach(filteredEvents.indices, id: \.self) { index in
+                            EventSectionView(
+                                event: filteredEvents[index],
+                                isExpanded: isExpanded(filteredEvents[index]),
+                                onToggleExpand: { toggleExpand(for: filteredEvents[index].id) },
+                                onAddRecord: {
+                                    if let actualEventIndex = events.firstIndex(where: { $0.id == filteredEvents[index].id }) {
+                                        selectedEventIndex = actualEventIndex
+                                        draftRecord = EventRecord(date: Date(), note: "")
+                                        isEditingRecord = false
+                                        showRecordEditor = true
+                                    }
+                                },
+                                onEditRecord: { recordID in
+                                    if let actualEventIndex = events.firstIndex(where: { $0.id == filteredEvents[index].id }),
+                                       let recordIndex = events[actualEventIndex].records.firstIndex(where: { $0.id == recordID }) {
+                                        selectedEventIndex = actualEventIndex
+                                        selectedRecordID = recordID
+                                        draftRecord = events[actualEventIndex].records[recordIndex]
+                                        isEditingRecord = true
+                                        showRecordEditor = true
+                                    }
+                                },
+                                sortedRecords: sortedRecords(for: events[index]),
+                                daysFromPrevious: { record in
+                                    if let actualEventIndex = events.firstIndex(where: { $0.id == filteredEvents[index].id }) {
+                                        return daysFromPreviousRecord(eventIndex: actualEventIndex, record: record)
+                                    }
+                                    return 0
+                                },
+                                onDeleteRecord: { recordID in
+                                    if let actualEventIndex = events.firstIndex(where: { $0.id == filteredEvents[index].id }),
+                                       let recordIndex = events[actualEventIndex].records.firstIndex(where: { $0.id == recordID }) {
+                                        deleteRecord(eventIndex: actualEventIndex, recordIndex: recordIndex)
+                                    }
+                                }
+                            )
+                            .listRowBackground(Color.white)
+                            .cornerRadius(8)
+                            .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 1)
+                        }
+                        .onDelete { offsets in
+                            deleteEvents(at: offsets)
+                        }
                     }
+                    .listStyle(InsetGroupedListStyle())
                 }
-                .listStyle(InsetGroupedListStyle())
             }
             .navigationTitle("DaysTracker")
             .toolbar {
-                // Editボタン
+                // 編集モードの切替ボタン
                 Button(action: { isEditing.toggle() }) {
                     Text(isEditing ? "完了" : "編集")
                 }
@@ -124,10 +138,8 @@ struct ContentView: View {
                     onSave: {
                         if isEditingRecord, let recordID = selectedRecordID,
                            let recordIndex = events[eventIndex].records.firstIndex(where: { $0.id == recordID }) {
-                            // 編集モード: 記録を更新
                             events[eventIndex].records[recordIndex] = draftRecord
                         } else {
-                            // 新規追加モード: 記録を追加
                             events[eventIndex].records.append(draftRecord)
                         }
                         showRecordEditor = false
@@ -144,9 +156,8 @@ struct ContentView: View {
             loadEvents()
         }
     }
-
-    // MARK: - 関数群
     
+    // MARK: - 関数群
     private func addNewEvent() {
         let trimmed = newEventTitle.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
@@ -155,8 +166,7 @@ struct ContentView: View {
     }
     
     private func searchEvents() {
-        // 検索イベントロジックをここに追加
-        // 現在はフィルタリングは自動で行われているため、特別な処理は不要です
+        // 検索イベントロジック（必要に応じて実装）
     }
     
     private func toggleExpand(for eventID: UUID) {
@@ -181,11 +191,6 @@ struct ContentView: View {
             return daysBetween(start: previousRecord.date, end: record.date)
         }
         return 0
-    }
-    
-    private func daysSince(date: Date) -> Int {
-        let components = Calendar.current.dateComponents([.day], from: date, to: Date())
-        return components.day ?? 0
     }
     
     private func daysBetween(start: Date, end: Date) -> Int {
@@ -219,5 +224,11 @@ struct ContentView: View {
             return events
         }
         return events.filter { $0.title.localizedCaseInsensitiveContains(searchText) }
+    }
+}
+
+struct ContentView_Previews: PreviewProvider {
+    static var previews: some View {
+        ContentView()
     }
 }
